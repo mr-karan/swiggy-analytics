@@ -1,0 +1,5 @@
+-   fetch orders and return data
+-   save to sqllite db
+-   progress bar
+-   cli configure
+-   cli fluff
