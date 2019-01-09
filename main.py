@@ -8,6 +8,7 @@ from exceptions import SwiggyCliAuthError, SwiggyCliConfigError
 from functools import lru_cache
 from math import ceil
 
+from db import init_db
 import requests
 from prompt_toolkit import prompt
 
@@ -41,6 +42,8 @@ perform lightweight stats operations using in-memory calculations.
 ''')
     if not config_file_present():
         initial_setup_prompt()
+
+    init_db()
 
     try:
         perform_login()
