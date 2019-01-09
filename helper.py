@@ -78,6 +78,8 @@ def get_orders():
 
     while limit != pages:
         orders = fetch_orders(offset_id)
+        if len(orders) == 0:
+            break
         orders_list = orders.json()['data']['orders']
         offset_id = orders_list[-1]['order_id']
         print(offset_id)

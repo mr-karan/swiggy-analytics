@@ -3,3 +3,11 @@
 -   progress bar
 -   cli configure
 -   cli fluff
+-   cleanup code with class instances, better variable names and comments
+-   add stats for
+-   pass config flag
+-   keep offset id in a text file, so that if there is a partial fetch, the complete fetch continues only from the fetch
+-   retry mechanism for login
+-   handle exceptions in db
+-   graphs in term?
+-   sql as external file
