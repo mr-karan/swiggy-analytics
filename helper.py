@@ -12,7 +12,8 @@ from prompt_toolkit.shortcuts import ProgressBar
 
 from cli import get_input_value, quit_prompt
 from constants import (PROGRESS_BAR_FORMATTER, PROGRESS_BAR_STYLE,
-                       SWIGGY_LOGIN_URL, SWIGGY_ORDER_URL, SWIGGY_URL)
+                       SWIGGY_API_CALL_INTERVAL, SWIGGY_LOGIN_URL,
+                       SWIGGY_ORDER_URL, SWIGGY_URL)
 from db import SwiggyDB
 from utils import get_config, save_config
 
@@ -72,7 +73,7 @@ def perform_login():
             "Login response non success %s", login_response.status_code)
 
 
-def get_orders():
+def get_orders(db):
     response = session.get(SWIGGY_ORDER_URL)
     if not response.json().get('data', None):
         raise SwiggyAPIError("Unable to fetch orders")
@@ -94,11 +95,9 @@ def get_orders():
                 break
             offset_id = orders[-1]['order_id']
             # swiggy super transaction wont have restaurant name
-            db = SwiggyDB()
-            db.init_db()
             try:
                 db.insert_orders([(orders[i]['order_id'], orders[i]['order_total'],
                                    orders[i].get('restaurant_name', ''), orders[i]['order_time'],) for i in range(len(orders))])
             except SwiggyDBError as e:
                 print(e)
-            time.sleep(3)
+            time.sleep(SWIGGY_API_CALL_INTERVAL)

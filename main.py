@@ -4,14 +4,14 @@ import os
 import string
 import sys
 import time
-from exceptions import SwiggyCliAuthError, SwiggyCliConfigError, SwiggyAPIError
+from exceptions import SwiggyAPIError, SwiggyCliAuthError, SwiggyCliConfigError
 from functools import lru_cache
 from math import ceil
 
-from db import SwiggyDB
 import requests
 from prompt_toolkit import prompt
 
+from db import SwiggyDB
 from helper import get_orders, initial_setup_prompt, perform_login
 from utils import config_file_present
 
@@ -33,6 +33,11 @@ def main():
                         "you can audit the code yourself. This file will only live in your filesystem and " +
                         "accessible by your username only. "
                         )
+    parser.add_argument('--save', action='store_true',
+                        help="Use this flag if you want to store your orders " +
+                        "in a sqllite db file. After the program has completed the " +
+                        "fetching orders, `swiggy.db` file wile be created in you current working directory. ")
+
     args = parser.parse_args()
 
     print('''Welcome to swiggy-expense.
@@ -45,7 +50,7 @@ perform lightweight stats operations using in-memory calculations.
         initial_setup_prompt()
 
     db = SwiggyDB()
-    db.init_db()
+    db.init_db(persist=args.save)
     db.create_db()
     try:
         perform_login()
@@ -56,7 +61,7 @@ perform lightweight stats operations using in-memory calculations.
         sys.exit("Login to swiggy failed.")
 
     try:
-        orders = get_orders()
+        orders = get_orders(db)
     except SwiggyAPIError:
         sys.exit(
             "Error fetching orders from Swiggy. " +
