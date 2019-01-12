@@ -4,11 +4,11 @@ import os
 import string
 import sys
 import time
-from exceptions import SwiggyCliAuthError, SwiggyCliConfigError
+from exceptions import SwiggyCliAuthError, SwiggyCliConfigError, SwiggyAPIError
 from functools import lru_cache
 from math import ceil
 
-from db import init_db
+from db import SwiggyDB
 import requests
 from prompt_toolkit import prompt
 
@@ -21,7 +21,8 @@ def main():
         description="Fetch your past swiggy orders " +
                     "using the command line",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-c', '--configure', metavar="configure",
+
+    parser.add_argument('--configure', action='store_true',
                         help="Configure  Swiggy-Expense  CLI  options. On running this command, " +
                         "you will be prompted for configuration values such as your Swiggy Username " +
                         "and your Swiggy Password. " +
@@ -40,10 +41,11 @@ This command line tool will help you fetch your order history from https://swigg
 You can choose to persist the detailed order information in a SQLite database or
 perform lightweight stats operations using in-memory calculations.
 ''')
-    if not config_file_present():
+    if not config_file_present() or args.configure:
         initial_setup_prompt()
 
-    init_db()
+    db = SwiggyDB()
+    db.init_db()
 
     try:
         perform_login()
@@ -53,8 +55,13 @@ perform lightweight stats operations using in-memory calculations.
     except SwiggyCliAuthError:
         sys.exit("Login to swiggy failed.")
 
-    orders = get_orders()
-
+    try:
+        orders = get_orders()
+    except SwiggyAPIError:
+        sys.exit(
+            "Error fetching orders from Swiggy. " +
+            "Please check your credentials. " +
+            "You can use swiggy-expense --configure to regenerate")
     return None
 
 

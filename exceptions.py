@@ -1,6 +1,3 @@
-import sys
-
-
 class SwiggyCliQuitError(Exception):
     pass
 
@@ -10,4 +7,12 @@ class SwiggyCliAuthError(Exception):
 
 
 class SwiggyCliConfigError(Exception):
+    pass
+
+
+class SwiggyAPIError(Exception):
+    pass
+
+
+class SwiggyDBError(Exception):
     pass

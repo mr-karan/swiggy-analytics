@@ -2,7 +2,7 @@ import os
 import sys
 import time
 from exceptions import (SwiggyCliAuthError, SwiggyCliConfigError,
-                        SwiggyCliQuitError)
+                        SwiggyCliQuitError, SwiggyAPIError, SwiggyDBError)
 from math import ceil
 
 import requests
@@ -11,13 +11,13 @@ from prompt_toolkit.shortcuts import ProgressBar
 from cli import get_input_value, quit_prompt
 from constants import SWIGGY_LOGIN_URL, SWIGGY_ORDER_URL, SWIGGY_URL
 from utils import get_config, save_config
-from db import insert_orders
+from db import SwiggyDB
 session = requests.Session()
 
 
 def fetch_orders(offset_id):
-    orders = session.get(SWIGGY_ORDER_URL + '?order_id=' + str(offset_id))
-    return orders
+    response = session.get(SWIGGY_ORDER_URL + '?order_id=' + str(offset_id))
+    return response.json().get('data').get('orders', [])
 
 
 def initial_setup_prompt():
@@ -28,13 +28,14 @@ def initial_setup_prompt():
     """
     try:
         swiggy_username = get_input_value(title='First time setup',
-                                          text='Please enter your swiggy username')
+                                          text='Please enter your swiggy username. You can use your mobile number')
     except SwiggyCliQuitError:
         sys.exit("Bye")
     try:
         swiggy_password = get_input_value(
             title='First time setup',
-            text='Please enter your swiggy password')
+            text='Please enter your swiggy password',
+            password=True)
     except SwiggyCliQuitError:
         sys.exit("Bye")
 
@@ -68,10 +69,16 @@ def perform_login():
 
 
 def get_orders():
-    orders = session.get(SWIGGY_ORDER_URL)
+    response = session.get(SWIGGY_ORDER_URL)
+    if not response.json().get('data', None):
+        raise SwiggyAPIError("Unable to fetch orders")
+
     # get the last order_id to use as offset param for next order fetch call
-    offset_id = orders.json()['data']['orders'][-1]['order_id']
-    count = orders.json()['data']['total_orders']
+    orders = response.json().get('data').get('orders', None)
+    if not orders:
+        raise SwiggyAPIError("Unable to fetch orders")
+    offset_id = orders[-1]['order_id']
+    count = response.json().get('data')['total_orders']
 
     pages = ceil(count/10)
     limit = 0
@@ -80,10 +87,14 @@ def get_orders():
         orders = fetch_orders(offset_id)
         if len(orders) == 0:
             break
-        orders_list = orders.json()['data']['orders']
-        offset_id = orders_list[-1]['order_id']
+        offset_id = orders[-1]['order_id']
         print(offset_id)
         # swiggy super transaction wont have restaurant name
-        insert_orders([(orders_list[i]['order_id'], orders_list[i]['order_total'],
-                        orders_list[i].get('restaurant_name', ''), orders_list[i]['order_time'],) for i in range(len(orders_list))])
+        db = SwiggyDB()
+        db.init_db()
+        try:
+            db.insert_orders([(orders[i]['order_id'], orders[i]['order_total'],
+                               orders[i].get('restaurant_name', ''), orders[i]['order_time'],) for i in range(len(orders))])
+        except SwiggyDBError as e:
+            print(e)
         time.sleep(10)
