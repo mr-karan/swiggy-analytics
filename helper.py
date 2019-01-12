@@ -1,17 +1,21 @@
 import os
 import sys
 import time
-from exceptions import (SwiggyCliAuthError, SwiggyCliConfigError,
-                        SwiggyCliQuitError, SwiggyAPIError, SwiggyDBError)
+from exceptions import (SwiggyAPIError, SwiggyCliAuthError,
+                        SwiggyCliConfigError, SwiggyCliQuitError,
+                        SwiggyDBError)
 from math import ceil
 
 import requests
+from prompt_toolkit.formatted_text import HTML
 from prompt_toolkit.shortcuts import ProgressBar
 
 from cli import get_input_value, quit_prompt
-from constants import SWIGGY_LOGIN_URL, SWIGGY_ORDER_URL, SWIGGY_URL
-from utils import get_config, save_config
+from constants import (PROGRESS_BAR_FORMATTER, PROGRESS_BAR_STYLE,
+                       SWIGGY_LOGIN_URL, SWIGGY_ORDER_URL, SWIGGY_URL)
 from db import SwiggyDB
+from utils import get_config, save_config
+
 session = requests.Session()
 
 
@@ -79,22 +83,22 @@ def get_orders():
         raise SwiggyAPIError("Unable to fetch orders")
     offset_id = orders[-1]['order_id']
     count = response.json().get('data')['total_orders']
-
     pages = ceil(count/10)
-    limit = 0
 
-    while limit != pages:
-        orders = fetch_orders(offset_id)
-        if len(orders) == 0:
-            break
-        offset_id = orders[-1]['order_id']
-        print(offset_id)
-        # swiggy super transaction wont have restaurant name
-        db = SwiggyDB()
-        db.init_db()
-        try:
-            db.insert_orders([(orders[i]['order_id'], orders[i]['order_total'],
-                               orders[i].get('restaurant_name', ''), orders[i]['order_time'],) for i in range(len(orders))])
-        except SwiggyDBError as e:
-            print(e)
-        time.sleep(10)
+    label = "Fetching {} orders".format(count)
+
+    with ProgressBar(style=PROGRESS_BAR_STYLE, formatters=PROGRESS_BAR_FORMATTER) as pb:
+        for i in pb(range(pages), label=label):
+            orders = fetch_orders(offset_id)
+            if len(orders) == 0:
+                break
+            offset_id = orders[-1]['order_id']
+            # swiggy super transaction wont have restaurant name
+            db = SwiggyDB()
+            db.init_db()
+            try:
+                db.insert_orders([(orders[i]['order_id'], orders[i]['order_total'],
+                                   orders[i].get('restaurant_name', ''), orders[i]['order_time'],) for i in range(len(orders))])
+            except SwiggyDBError as e:
+                print(e)
+            time.sleep(3)

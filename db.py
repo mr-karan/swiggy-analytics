@@ -13,14 +13,14 @@ class SwiggyDB(object):
         cur = self.conn.cursor()
         cur.execute(
             "CREATE TABLE IF NOT EXISTS orders(id INTEGER PRIMARY KEY AUTOINCREMENT, order_id INT UNIQUE, order_total FLOAT, restaurant_name VARCHAR, order_time DATETIME)")
-        conn.commit()
+        self.conn.commit()
 
     def insert_orders(self, orders):
         cur = self.conn.cursor()
         try:
             cur.executemany(
                 'INSERT INTO orders(order_id, order_total, restaurant_name, order_time) VALUES (?,?,?,?)', orders)
-            conn.commit()
+            self.conn.commit()
         # except Exception as e:
         #     raise SwiggyDBError("Error while inserting orders: %s", e)
         except sqlite3.Error as e:

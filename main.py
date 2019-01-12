@@ -46,7 +46,7 @@ perform lightweight stats operations using in-memory calculations.
 
     db = SwiggyDB()
     db.init_db()
-
+    db.create_db()
     try:
         perform_login()
     except SwiggyCliConfigError:
