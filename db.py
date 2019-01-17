@@ -37,10 +37,10 @@ class SwiggyDB(object):
         except Exception as e:
             raise SwiggyDBError("Error while executing query %s", e)
 
-    def insert_order_items(self, orders):
+    def insert_order_items(self, items):
         cur = self.conn.cursor()
         try:
-            cur.executemany(insert_items_query, orders)
+            cur.executemany(insert_items_query, items)
             self.conn.commit()
         except sqlite3.Error as e:
             if "UNIQUE" in "{}".format(e):

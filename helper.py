@@ -27,7 +27,7 @@ def fetch_orders_info(orders):
     OrderDetails = namedtuple(
         'OrderDetails', ['order_id', 'order_total', 'restaurant_name', 'order_time', 'rain_mode', 'on_time'])
     OrderItems = namedtuple(
-        'OrderItems', ['order_id', 'is_veg', 'name'])
+        'OrderItems', ['order_id', 'name', 'is_veg'])
 
     # filter orders which are delivered
     delivered_orders = list(filter(lambda i: i.get(
@@ -51,14 +51,21 @@ def fetch_orders_info(orders):
                 is_veg = item.get('is_veg')
                 name = item.get('name')
                 order_items.append(OrderItems(order_id=order_id,
-                                              is_veg=is_veg,
-                                              name=name))
+                                              name=name,
+                                              is_veg=is_veg
+                                              ))
 
     return {'order_details': order_details, 'order_items': order_items}
 
 
 def fetch_orders(offset_id):
-    response = session.get(SWIGGY_ORDER_URL + '?order_id=' + str(offset_id))
+    try:
+        response = session.get(
+            SWIGGY_ORDER_URL + '?order_id=' + str(offset_id))
+    except requests.exceptions.ConnectionError:
+        fetch_orders(offset_id)
+    except Exception as e:
+        raise SwiggyAPIError("Error while fetching orders %s", e)
     return response.json().get('data').get('orders', [])
 
 
@@ -99,8 +106,9 @@ def perform_login():
         username, password = get_config()
     except SwiggyCliConfigError as e:
         raise e
-    login_response = session.post(SWIGGY_LOGIN_URL, headers={'content-type': 'application/json'}, json={
-                                  "mobile": username, "password": password, '_csrf': csrf_token})
+    login_response = session.post(SWIGGY_LOGIN_URL, headers={'content-type': 'application/json',
+                                                             'User-Agent': 'Mozilla/Gecko/Firefox/65.0'},
+                                  json={"mobile": username, "password": password, '_csrf': csrf_token})
 
     if login_response.text == "Invalid Request":
         perform_login()
@@ -127,11 +135,18 @@ def get_orders(db):
 
     with ProgressBar(style=PROGRESS_BAR_STYLE, formatters=PROGRESS_BAR_FORMATTER) as pb:
         for i in pb(range(pages), label=label):
-            orders = fetch_orders(offset_id)
+            try:
+                orders = fetch_orders(offset_id)
+            except SwiggyAPIError as e:
+                raise SwiggyAPIError(e)
             if len(orders) == 0:
                 break
 
-            orders_info = fetch_orders_info(orders)
+            try:
+                orders_info = fetch_orders_info(orders)
+            except SwiggyAPIError as e:
+                raise SwiggyAPIError(e)
+
             try:
                 db.insert_orders_details(orders_info.get('order_details'))
             except SwiggyDBError as e:
@@ -140,5 +155,12 @@ def get_orders(db):
                 db.insert_order_items(orders_info.get('order_items'))
             except SwiggyDBError as e:
                 print(e)
+
+            # Responsible Scraping. Code word for "dont wanna overload their servers :P" :)
             time.sleep(SWIGGY_API_CALL_INTERVAL)
+            # SAD PANDA FACE BEGIN
+            # The way it works is that, the first API call returns a paginated set of 10 orders and to fetch the next result, you need
+            # to send the last order_id from this result set as an offset parameter. Because the way this offset/cursor
+            # is designed it makes it impossible to use any kind of async/await magic.
+            # SAD PANDA FACE OVER
             offset_id = orders[-1]['order_id']
