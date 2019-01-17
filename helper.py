@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+from collections import namedtuple
 from exceptions import (SwiggyAPIError, SwiggyCliAuthError,
                         SwiggyCliConfigError, SwiggyCliQuitError,
                         SwiggyDBError)
@@ -18,6 +19,42 @@ from db import SwiggyDB
 from utils import get_config, save_config
 
 session = requests.Session()
+
+
+def fetch_orders_info(orders):
+    order_details = []
+    order_items = []
+    OrderDetails = namedtuple(
+        'OrderDetails', ['order_id', 'order_total', 'restaurant_name', 'order_time', 'rain_mode', 'on_time'])
+    OrderItems = namedtuple(
+        'OrderItems', ['order_id', 'is_veg', 'name'])
+
+    # filter orders which are delivered
+    delivered_orders = list(filter(lambda i: i.get(
+        'order_status', '') == 'Delivered', orders))
+    for order in delivered_orders:
+        order_id = order.get('order_id')
+        order_total = order.get('order_total')
+        restaurant_name = order.get('restaurant_name')
+        order_time = order.get('order_time')
+        rain_mode = order.get('rain_mode', False)
+        on_time = order.get('on_time', True)
+
+        order_details.append(OrderDetails(order_id=order_id,
+                                          order_total=order_total,
+                                          restaurant_name=restaurant_name,
+                                          order_time=order_time,
+                                          rain_mode=rain_mode,
+                                          on_time=on_time))
+        if order.get('order_items'):
+            for item in order.get('order_items'):
+                is_veg = item.get('is_veg')
+                name = item.get('name')
+                order_items.append(OrderItems(order_id=order_id,
+                                              is_veg=is_veg,
+                                              name=name))
+
+    return {'order_details': order_details, 'order_items': order_items}
 
 
 def fetch_orders(offset_id):
@@ -93,11 +130,15 @@ def get_orders(db):
             orders = fetch_orders(offset_id)
             if len(orders) == 0:
                 break
-            offset_id = orders[-1]['order_id']
-            # swiggy super transaction wont have restaurant name
+
+            orders_info = fetch_orders_info(orders)
             try:
-                db.insert_orders([(orders[i]['order_id'], orders[i]['order_total'],
-                                   orders[i].get('restaurant_name', ''), orders[i]['order_time'],) for i in range(len(orders))])
+                db.insert_orders_details(orders_info.get('order_details'))
+            except SwiggyDBError as e:
+                print(e)
+            try:
+                db.insert_order_items(orders_info.get('order_items'))
             except SwiggyDBError as e:
                 print(e)
             time.sleep(SWIGGY_API_CALL_INTERVAL)
+            offset_id = orders[-1]['order_id']

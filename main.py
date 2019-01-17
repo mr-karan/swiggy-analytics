@@ -1,3 +1,15 @@
+
+#!/usr/bin/python
+
+"""
+swiggy-cli-expense is a utility to fetch your orders
+history from Swiggy and provide basic stats on them.
+
+Author: Karan Sharma, http://mrkaran.com
+
+Licensed under the MIT License.
+"""
+
 import argparse
 import logging
 import os
@@ -14,9 +26,12 @@ from prompt_toolkit import prompt
 from db import SwiggyDB
 from helper import get_orders, initial_setup_prompt, perform_login
 from utils import config_file_present
+from cli import print_bars
 
 
 def main():
+    # return print_bars()
+
     parser = argparse.ArgumentParser(
         description="Fetch your past swiggy orders " +
                     "using the command line",
