@@ -1,7 +1,7 @@
 import sqlite3
 from exceptions import SwiggyDBError
 from constants import DB_FILEPATH
-from queries import (create_items_table_query, create_orders_table_query,
+from queries import (create_items_table_query, create_orders_table_query, get_items_name_count_query,
                      insert_items_query, insert_orders_query, get_total_orders_query)
 
 
@@ -61,3 +61,13 @@ class SwiggyDB(object):
         except Exception as e:
             raise SwiggyDBError("Error while executing query %s", e)
         return cur.fetchone()[0]
+
+    def get_items_name_count(self):
+        cur = self.conn.cursor()
+        try:
+            cur.execute(get_items_name_count_query)
+        except sqlite3.Error as e:
+            raise SwiggyDBError("Error while fetching items %s", e)
+        except Exception as e:
+            raise SwiggyDBError("Error while executing query %s", e)
+        return cur.fetchall()

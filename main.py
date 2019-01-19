@@ -68,8 +68,7 @@ perform lightweight stats operations using in-memory calculations.
     if os.path.exists(DB_FILEPATH) and user_continue():
         db = SwiggyDB()
         db.init_db(persist=True)
-        ans = display_stats(db)
-        print(ans)
+        display_stats(db)
         return None
 
     db = SwiggyDB()

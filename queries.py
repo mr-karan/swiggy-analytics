@@ -23,3 +23,10 @@ INSERT INTO items(order_id, name, is_veg) VALUES (?,?,?)
 
 # analytics queries
 get_total_orders_query = "SELECT count(order_id) from orders"
+get_items_name_count_query = "SELECT name, count(id) as ctr from items group by name order by ctr desc limit 20"
+get_top_20_restaurants_query = """
+SELECT "restaurant_name" AS "restaurant_name", count(*) AS "count"
+FROM "orders"
+GROUP BY "restaurant_name"
+ORDER BY "count" DESC LIMIT 20
+"""

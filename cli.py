@@ -57,31 +57,30 @@ def get_input_value(title, text, password=False):
 
 def print_bars(items=None, block=u"\u2580", width=50):
     """Print unicode bar representations of dates and scores."""
-    items = [{'count': 20, 'weekend': True, 'score': 0.4},
-             {'count': 40, 'weekend': False, 'score': 0.6}]
     for i in range(len(items)):
         num = str(items[i]["count"])
 
-        sys.stdout.write("hey")
-        sys.stdout.write("  ")
+        sys.stdout.write(" ")
         sys.stdout.write(num)
         sys.stdout.write((5 - len(num)) * " ")
 
         # Colour the weekend bars.
-        if items[i]["weekend"]:
-            sys.stdout.write("\033[93m")
+        # if items[i]["weekend"]:
+        #     sys.stdout.write("\033[93m")
 
         sys.stdout.write(block * int(items[i]["score"] * width))
 
-        if items[i]["weekend"]:
-            sys.stdout.write("\x1b[0m")
-
+        # if items[i]["weekend"]:
+        #     sys.stdout.write("\x1b[0m")
+        sys.stdout.write("\033[93m")
+        sys.stdout.write(" {} ".format(items[i]["name"]))
+        sys.stdout.write("\x1b[0m")
         sys.stdout.write("\n")
 
 
 def user_continue():
     html_completer = WordCompleter(YES_ANSWER_CHOICES+NO_ANSWER_CHOICES)
-    answer = prompt('Enter HTML: ', completer=html_completer,
+    answer = prompt('You already have a swiggy.db file, do you want to use the same: ', completer=html_completer,
                     validator=YesNoValidator())
 
     if answer in YES_ANSWER_CHOICES:

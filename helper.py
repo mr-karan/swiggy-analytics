@@ -11,13 +11,13 @@ import requests
 from prompt_toolkit.formatted_text import HTML
 from prompt_toolkit.shortcuts import ProgressBar
 
-from cli import get_input_value, quit_prompt
+from cli import get_input_value, quit_prompt, print_bars
 from constants import (PROGRESS_BAR_FORMATTER, PROGRESS_BAR_STYLE,
                        SWIGGY_API_CALL_INTERVAL, SWIGGY_LOGIN_URL,
                        SWIGGY_ORDER_URL, SWIGGY_URL)
 from db import SwiggyDB
-from utils import get_config, save_config
-
+from utils import get_config, save_config, get_scores
+from prompt_toolkit import print_formatted_text
 session = requests.Session()
 
 
@@ -167,8 +167,18 @@ def get_orders(db):
 
 
 def display_stats(db):
+    print_formatted_text(
+        HTML("Some basic stats based on your order history: \n"))
     try:
         orders_count = db.get_total_orders()
     except SwiggyDBError as e:
         raise("Error while fetching total orders count %s", e)
-    return orders_count
+    print_formatted_text(HTML(
+        'Your total <b>delivered</b> orders are <skyblue>{}</skyblue>\n'.format(orders_count)))
+
+    try:
+        items_count_bar_graph = db.get_items_name_count()
+    except SwiggyDBError as e:
+        raise("Error while fetching total orders count %s", e)
+    print_bars(get_scores([{"name": i[0], "count":i[1]}
+                           for i in items_count_bar_graph]))
