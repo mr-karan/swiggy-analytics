@@ -8,16 +8,21 @@ from exceptions import (SwiggyAPIError, SwiggyCliAuthError,
 from math import ceil
 
 import requests
+from prompt_toolkit import print_formatted_text
 from prompt_toolkit.formatted_text import HTML
 from prompt_toolkit.shortcuts import ProgressBar
 
-from cli import get_input_value, quit_prompt, print_bars
+from cli import get_input_value, print_bars, quit_prompt
 from constants import (PROGRESS_BAR_FORMATTER, PROGRESS_BAR_STYLE,
                        SWIGGY_API_CALL_INTERVAL, SWIGGY_LOGIN_URL,
                        SWIGGY_ORDER_URL, SWIGGY_URL)
 from db import SwiggyDB
-from utils import get_config, save_config, get_scores
-from prompt_toolkit import print_formatted_text
+from queries import (get_items_name_count_query, get_monthly_spend_count,
+                     get_order_count_day_of_week, get_top_20_restaurants_query,
+                     get_total_orders_query)
+from utils import (get_config, get_month, get_scores, get_weekday_name,
+                   save_config, format_amount)
+
 session = requests.Session()
 
 
@@ -167,18 +172,57 @@ def get_orders(db):
 
 
 def display_stats(db):
+    # intro
     print_formatted_text(
-        HTML("Some basic stats based on your order history: \n"))
+        HTML("Some basic stats based on your order history:"))
+    # orders count sec
     try:
-        orders_count = db.get_total_orders()
+        orders_count = db.fetch_result(query=get_total_orders_query)[0][0]
     except SwiggyDBError as e:
         raise("Error while fetching total orders count %s", e)
     print_formatted_text(HTML(
-        'Your total <b>delivered</b> orders are <skyblue>{}</skyblue>\n'.format(orders_count)))
+        '\nYour total <b>delivered</b> orders are: <skyblue>{}</skyblue>\n'.format(orders_count)))
 
+    # spend pattern
+    print_formatted_text(
+        HTML('\nYour spend and orders count distributed monthly:'))
     try:
-        items_count_bar_graph = db.get_items_name_count()
+        items_count_bar_graph = db.fetch_result(
+            query=get_monthly_spend_count)
     except SwiggyDBError as e:
-        raise("Error while fetching total orders count %s", e)
+        raise("Error while fetching items v/s count %s", e)
+    print_bars(get_scores([{"name": get_month(i[0]), "count":i[2], "extra":format_amount(i[1])}
+                           for i in items_count_bar_graph]))
+
+    # topK weekdays
+    print_formatted_text(HTML(
+        '\nWeekday wise distribution of your orders:'))
+    try:
+        weekday_count_bar_graph = db.fetch_result(
+            query=get_order_count_day_of_week)
+    except SwiggyDBError as e:
+        raise("Error while fetching total orders v/s weekday data %s", e)
+
+    print_bars(get_scores([{"name": get_weekday_name(i[0]), "count":i[1]}
+                           for i in weekday_count_bar_graph]))
+
+    # topK restaraunts
+    print_formatted_text(
+        HTML('\nTop <b>20</b> restaraunts from where you have ordered:'))
+    try:
+        items_count_bar_graph = db.fetch_result(
+            query=get_top_20_restaurants_query)
+    except SwiggyDBError as e:
+        raise("Error while fetching items v/s count %s", e)
+    print_bars(get_scores([{"name": i[0], "count":i[1]}
+                           for i in items_count_bar_graph]))
+    # topK items
+    print_formatted_text(
+        HTML('\nTop <b>20</b> items that you have ordered:'))
+    try:
+        items_count_bar_graph = db.fetch_result(
+            query=get_items_name_count_query)
+    except SwiggyDBError as e:
+        raise("Error while fetching items v/s count %s", e)
     print_bars(get_scores([{"name": i[0], "count":i[1]}
                            for i in items_count_bar_graph]))

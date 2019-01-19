@@ -1,7 +1,8 @@
+import calendar
 import configparser
-
-from constants import CONFIG_FILEPATH
 import os
+from datetime import datetime
+from constants import CONFIG_FILEPATH
 
 
 def save_config(username, password):
@@ -45,3 +46,15 @@ def get_scores(items):
         i["score"] = normalize(i["count"], xmin, xmax)
 
     return items
+
+
+def get_weekday_name(int_day):
+    return calendar.day_name[int_day-1]
+
+
+def get_month(date):
+    return datetime.strptime(date, '%Y-%m-%d').strftime('%b-%y')
+
+
+def format_amount(data):
+    return "₹"+str(data)

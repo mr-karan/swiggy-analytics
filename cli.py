@@ -20,7 +20,7 @@ class YesNoValidator(Validator):
         text = document.text.lower()
         if text not in YES_ANSWER_CHOICES+NO_ANSWER_CHOICES:
             raise ValidationError(message='Enter "yes" if you want to continue '
-                                          '"no" if you want to abort.')
+                                          '"no" if you want to refetch the orders.')
 
 
 def quit_prompt():
@@ -70,19 +70,23 @@ def print_bars(items=None, block=u"\u2580", width=50):
 
         sys.stdout.write(block * int(items[i]["score"] * width))
 
-        # if items[i]["weekend"]:
-        #     sys.stdout.write("\x1b[0m")
         sys.stdout.write("\033[93m")
         sys.stdout.write(" {} ".format(items[i]["name"]))
         sys.stdout.write("\x1b[0m")
+
+        if items[i].get("extra"):
+            sys.stdout.write("\033[91m")
+            sys.stdout.write((items[i].get("extra")))
+            sys.stdout.write("\x1b[0m")
+
         sys.stdout.write("\n")
 
 
 def user_continue():
     html_completer = WordCompleter(YES_ANSWER_CHOICES+NO_ANSWER_CHOICES)
-    answer = prompt('You already have a swiggy.db file, do you want to use the same: ', completer=html_completer,
-                    validator=YesNoValidator())
+    answer = prompt('You already have a swiggy.db file, do you want to use the same? (Yes/no) ', completer=html_completer,
+                    validator=YesNoValidator(), default="yes")
 
-    if answer in YES_ANSWER_CHOICES:
+    if answer.lower() in YES_ANSWER_CHOICES:
         return True
     return False

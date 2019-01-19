@@ -23,10 +23,26 @@ INSERT INTO items(order_id, name, is_veg) VALUES (?,?,?)
 
 # analytics queries
 get_total_orders_query = "SELECT count(order_id) from orders"
+
 get_items_name_count_query = "SELECT name, count(id) as ctr from items group by name order by ctr desc limit 20"
+
 get_top_20_restaurants_query = """
 SELECT "restaurant_name" AS "restaurant_name", count(*) AS "count"
 FROM "orders"
 GROUP BY "restaurant_name"
 ORDER BY "count" DESC LIMIT 20
+"""
+
+get_order_count_day_of_week = """
+SELECT CAST((strftime('%w', "order_time")) AS integer) AS "order_time", count(*) AS "count"
+FROM "orders"
+GROUP BY CAST((strftime('%w', "order_time")) AS integer)
+ORDER BY CAST((strftime('%w', "order_time")) AS integer) ASC
+"""
+
+get_monthly_spend_count = """
+SELECT date("order_time", 'start of month') AS "order_time", sum("order_total") AS "sum", count(*) AS "count"
+FROM "orders"
+GROUP BY date("order_time", 'start of month')
+ORDER BY date("order_time", 'start of month') ASC
 """
