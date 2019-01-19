@@ -6,4 +6,4 @@ This repo needs to login to your Swiggy account and fetch the order history. The
 
 ## Setting up account
 
-Run `swiggy-expense configure` which generates a `.swiggy` file in your home directory. The file contains your username and password to your Swiggy account.
+Run `swiggy-analytics configure` which generates a `.swiggy` file in your home directory. The file contains your username and password to your Swiggy account.

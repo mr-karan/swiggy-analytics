@@ -11,35 +11,26 @@ Licensed under the MIT License.
 """
 
 import argparse
-import logging
 import os
-import string
 import sys
-import time
-from exceptions import SwiggyAPIError, SwiggyCliAuthError, SwiggyCliConfigError
-from functools import lru_cache
-from math import ceil
 
-import requests
-from prompt_toolkit import prompt
-
-from db import SwiggyDB
-from helper import get_orders, initial_setup_prompt, perform_login, display_stats
-from utils import config_file_present
-from cli import print_bars, user_continue
-from constants import DB_FILEPATH
+from swiggy_analytics.cli import user_continue
+from swiggy_analytics.constants import DB_FILEPATH
+from swiggy_analytics.db import SwiggyDB
+from swiggy_analytics.exceptions import (SwiggyAPIError, SwiggyCliAuthError,
+                                         SwiggyCliConfigError)
+from swiggy_analytics.helper import (display_stats, fetch_and_store_orders,
+                                     initial_setup_prompt, perform_login)
+from swiggy_analytics.utils import config_file_present
 
 
 def main():
-    # return print_bars()
-
     parser = argparse.ArgumentParser(
         description="Fetch your past swiggy orders " +
                     "using the command line",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-
     parser.add_argument('--configure', action='store_true',
-                        help="Configure  Swiggy-Expense  CLI  options. On running this command, " +
+                        help="Configure  swiggy-analytics  CLI  options. On running this command, " +
                         "you will be prompted for configuration values such as your Swiggy Username " +
                         "and your Swiggy Password. " +
                         "(the default location is ~/.aws/config). The AWS CLI will create/overwrite " +
@@ -56,7 +47,7 @@ def main():
 
     args = parser.parse_args()
 
-    print('''Welcome to swiggy-expense.
+    print('''Welcome to swiggy-analytics.
 
 This command line tool will help you fetch your order history from https://swiggy.com.
 You can choose to persist the detailed order information in a SQLite database or
@@ -67,7 +58,9 @@ perform lightweight stats operations using in-memory calculations.
 
     if os.path.exists(DB_FILEPATH) and user_continue():
         db = SwiggyDB()
+        # connect to the existing db
         db.init_db(persist=True)
+        # show basic stats by fetching the results from already existing db
         display_stats(db)
         return None
 
@@ -84,14 +77,13 @@ perform lightweight stats operations using in-memory calculations.
         sys.exit("Login to swiggy failed.")
 
     try:
-        orders = get_orders(db)
+        orders = fetch_and_store_orders(db)
     except SwiggyAPIError:
         sys.exit(
             "Error fetching orders from Swiggy. " +
             "Please check your credentials. " +
-            "You can use swiggy-expense --configure to regenerate")
+            "You can use swiggy-analytics --configure to regenerate")
 
-    # if not args.save:
     display_stats(db)
 
     return None

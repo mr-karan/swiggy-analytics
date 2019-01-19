@@ -10,17 +10,15 @@
 
 [x] cleanup code with class instances, better variable names and comments
 
-[ ] add stats for
+[x] add stats
 
 [x] pass config flag
-
-[ ] keep offset id in a text file, so that if there is a partial fetch, the complete fetch continues only from the fetch
 
 [x] retry mechanism for login
 
 [x] handle exceptions in db
 
-[ ] graphs in term?
+[x] graphs in term?
 
 [x] sql as external file
 
@@ -34,4 +32,7 @@
 
 [ ] test on ubuntu vagrant
 
+### Next Version
+
 [ ] email monthly reports
+[ ] keep offset id in a text file, so that if there is a partial fetch, the complete fetch continues only from the fetch - \*Will do in next release

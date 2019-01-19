@@ -1,9 +1,10 @@
 import sqlite3
-from exceptions import SwiggyDBError
 
-from constants import DB_FILEPATH
-from queries import (create_items_table_query, create_orders_table_query,
-                     insert_items_query, insert_orders_query)
+from swiggy_analytics.constants import DB_FILEPATH
+from swiggy_analytics.exceptions import SwiggyDBError
+from swiggy_analytics.queries import (create_items_table_query,
+                                      create_orders_table_query,
+                                      insert_items_query, insert_orders_query)
 
 
 class SwiggyDB(object):
@@ -36,9 +37,10 @@ class SwiggyDB(object):
             if "UNIQUE" in "{}".format(e):
                 pass
             else:
-                raise SwiggyDBError("Error while inserting orders %s", e)
+                raise SwiggyDBError(
+                    "Error while inserting orders: {}".format(e))
         except Exception as e:
-            raise SwiggyDBError("Error while executing query %s", e)
+            raise SwiggyDBError("Error while executing query: {}".format(e))
 
     def insert_order_items(self, items):
         cur = self.conn.cursor()
@@ -49,16 +51,16 @@ class SwiggyDB(object):
             if "UNIQUE" in "{}".format(e):
                 pass
             else:
-                raise SwiggyDBError("Error while inserting items %s", e)
+                raise SwiggyDBError("Error while inserting items {}".format(e))
         except Exception as e:
-            raise SwiggyDBError("Error while executing query %s", e)
+            raise SwiggyDBError("Error while executing query: {}".format(e))
 
     def fetch_result(self, query):
         cur = self.conn.cursor()
         try:
             cur.execute(query)
         except sqlite3.Error as e:
-            raise SwiggyDBError("Error while fetching items %s", e)
+            raise SwiggyDBError("Error while fetching items: {}".format(e))
         except Exception as e:
-            raise SwiggyDBError("Error while executing query %s", e)
+            raise SwiggyDBError("Error while executing query: {}".format(e))
         return cur.fetchall()
