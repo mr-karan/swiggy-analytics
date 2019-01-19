@@ -1,7 +1,26 @@
-from prompt_toolkit.shortcuts import button_dialog
-from prompt_toolkit.shortcuts import input_dialog
-from exceptions import SwiggyCliQuitError
 import sys
+from exceptions import SwiggyCliQuitError
+
+from prompt_toolkit import prompt
+from prompt_toolkit.completion import WordCompleter
+from prompt_toolkit.shortcuts import button_dialog, input_dialog
+from prompt_toolkit.validation import Validator, ValidationError
+from constants import YES_ANSWER_CHOICES, NO_ANSWER_CHOICES
+
+
+class YesNoValidator(Validator):
+
+    def validate(self, document):
+        """
+        Display error message if text not valid.
+
+        return:
+            A status bar with validation error message
+        """
+        text = document.text.lower()
+        if text not in YES_ANSWER_CHOICES+NO_ANSWER_CHOICES:
+            raise ValidationError(message='Enter "yes" if you want to continue '
+                                          '"no" if you want to abort.')
 
 
 def quit_prompt():
@@ -58,3 +77,13 @@ def print_bars(items=None, block=u"\u2580", width=50):
             sys.stdout.write("\x1b[0m")
 
         sys.stdout.write("\n")
+
+
+def user_continue():
+    html_completer = WordCompleter(YES_ANSWER_CHOICES+NO_ANSWER_CHOICES)
+    answer = prompt('Enter HTML: ', completer=html_completer,
+                    validator=YesNoValidator())
+
+    if answer in YES_ANSWER_CHOICES:
+        return True
+    return False

@@ -164,3 +164,11 @@ def get_orders(db):
             # is designed it makes it impossible to use any kind of async/await magic.
             # SAD PANDA FACE OVER
             offset_id = orders[-1]['order_id']
+
+
+def display_stats(db):
+    try:
+        orders_count = db.get_total_orders()
+    except SwiggyDBError as e:
+        raise("Error while fetching total orders count %s", e)
+    return orders_count

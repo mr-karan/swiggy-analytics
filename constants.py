@@ -10,6 +10,7 @@ SWIGGY_ORDER_URL = SWIGGY_URL + '/dapi/order/all'
 SWIGGY_API_CALL_INTERVAL = 1.5  # interval between API calls. (in seconds)
 
 CONFIG_FILEPATH = os.path.join(str(Path.home()), '.swiggy-expense-config.ini')
+DB_FILEPATH = os.path.join(str(os.getcwd()), 'swiggy.db')
 
 PROGRESS_BAR_STYLE = Style.from_dict({
     'label': 'bg:#FFA500 #000000',
@@ -27,3 +28,6 @@ PROGRESS_BAR_FORMATTER = [
     formatters.Bar(sym_a='#', sym_b='#', sym_c='.'),
     formatters.Text('  '),
 ]
+
+YES_ANSWER_CHOICES = ['y', 'yes', 'yeah', 'yup']
+NO_ANSWER_CHOICES = ['n', 'no', 'nope']

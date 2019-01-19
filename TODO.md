@@ -33,3 +33,5 @@
 [ ] publish on pypi
 
 [ ] test on ubuntu vagrant
+
+[ ] email monthly reports

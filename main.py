@@ -24,9 +24,10 @@ import requests
 from prompt_toolkit import prompt
 
 from db import SwiggyDB
-from helper import get_orders, initial_setup_prompt, perform_login
+from helper import get_orders, initial_setup_prompt, perform_login, display_stats
 from utils import config_file_present
-from cli import print_bars
+from cli import print_bars, user_continue
+from constants import DB_FILEPATH
 
 
 def main():
@@ -64,9 +65,17 @@ perform lightweight stats operations using in-memory calculations.
     if not config_file_present() or args.configure:
         initial_setup_prompt()
 
+    if os.path.exists(DB_FILEPATH) and user_continue():
+        db = SwiggyDB()
+        db.init_db(persist=True)
+        ans = display_stats(db)
+        print(ans)
+        return None
+
     db = SwiggyDB()
     db.init_db(persist=args.save)
     db.create_db()
+
     try:
         perform_login()
     except SwiggyCliConfigError:
@@ -82,6 +91,10 @@ perform lightweight stats operations using in-memory calculations.
             "Error fetching orders from Swiggy. " +
             "Please check your credentials. " +
             "You can use swiggy-expense --configure to regenerate")
+
+    # if not args.save:
+    display_stats(db)
+
     return None
 
 

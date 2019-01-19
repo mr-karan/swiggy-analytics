@@ -22,4 +22,4 @@ INSERT INTO items(order_id, name, is_veg) VALUES (?,?,?)
 """
 
 # analytics queries
-total_orders_query = "SELECT count(order_id) from orders"
+get_total_orders_query = "SELECT count(order_id) from orders"
