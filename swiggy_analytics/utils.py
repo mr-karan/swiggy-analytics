@@ -10,7 +10,7 @@ def save_config(username, password):
     """
     Saves a config file to the user's specified location.
     """
-    Config = configparser.ConfigParser()
+    Config = configparser.ConfigParser(interpolation=None)
     with open(CONFIG_FILEPATH, 'w') as config_file:
         # add the settings to the structure of the file, and lets write it out...
         Config.add_section('Auth')
