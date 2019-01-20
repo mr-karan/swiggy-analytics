@@ -1,6 +1,15 @@
 #!/usr/bin/env python
 
-from setuptools import setup, find_packages
+from os import path
+
+from setuptools import find_packages, setup
+
+
+# read the contents of your README file
+def read_readme():
+    this_directory = path.abspath(path.dirname(__file__))
+    with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
+        return f.read()
 
 
 def requirements():
@@ -10,8 +19,10 @@ def requirements():
 
 setup(
     name="swiggy_analytics",
-    version="1.1",
+    version="1.2",
     description="A CLI for fetching past orders from Swiggy and performing basic stats in the terminal",
+    long_description=read_readme(),
+    # long_description_content_type='text/markdown',
     author="Karan Sharma",
     author_email="karansharma1295@gmail.com",
     url="https://github.com/mr-karan/swiggy-analytics",

@@ -59,4 +59,4 @@ PRs on Feature Requests, Bug fixes are welcome. Feel free to open an issue and h
 ### Disclaimer
 
 This tool is only intended for personal use and is a simple demonstration. It is in open domain and I am not responsible if you use it and violate any TnC. Or as they say,
-it's _for science_.
+it's **for science**.
