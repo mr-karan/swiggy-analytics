@@ -1,8 +1,13 @@
 # swiggy-analytics
 
+[![version](https://img.shields.io/pypi/v/swiggy-analytics.svg)](https://pypi.org/project/swiggy-analytics/)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/mr-karan/fate/master/LICENSE)
+
 ![Overview image](images/overview.png)
 
 `swiggy-analytics` is CLI for fetching past orders from Swiggy and storing them in a local `SQLLite` DB. It also displays basic stats on your order history in the terminal, such as your most frequently order dish, your monthly expenditure, weekday wise distribution of orders and much more. For more advanced users, who wish to perform their own analysis, can do so by using the `sqlite3` db file which is generated.
+
+_NOTE_: **Only** supported by Python3. Seriously, if you're still using Python2, _please_ [STOP](https://pythonclock.org/). I've tested it on Python3.5+ on OSX and Ubuntu 18.04 Vagrant machine.
 
 ## Important Disclaimer
 
