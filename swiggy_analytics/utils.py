@@ -10,7 +10,7 @@ def save_config(username, password):
     """
     Saves a config file to the user's specified location.
     """
-    Config = configparser.ConfigParser(interpolation=None)
+    Config = configparser.RawConfigParser()
     with open(CONFIG_FILEPATH, 'w') as config_file:
         # add the settings to the structure of the file, and lets write it out...
         Config.add_section('Auth')
@@ -26,7 +26,7 @@ def get_config():
     if not config_file_present():
         raise SwiggyCliConfigError("No config file present")
 
-    Config = configparser.ConfigParser()
+    Config = configparser.RawConfigParser()
     Config.read(CONFIG_FILEPATH)
     return Config.get('Auth', 'Username'), Config.get('Auth', 'Password')
 
