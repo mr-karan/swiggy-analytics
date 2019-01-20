@@ -22,15 +22,15 @@
 
 [x] sql as external file
 
-[ ] add readme
+[x] add readme
 
-[ ] add screenies, asciiterm
+[x] add screenies, asciiterm
 
 [ ] write blogpost
 
-[ ] publish on pypi
+[x] publish on pypi
 
-[ ] test on ubuntu vagrant
+[x] test on ubuntu vagrant
 
 ### Next Version
 
