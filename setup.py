@@ -10,7 +10,7 @@ def requirements():
 
 setup(
     name="swiggy_analytics",
-    version="1.0",
+    version="1.1",
     description="A CLI for fetching past orders from Swiggy and performing basic stats in the terminal",
     author="Karan Sharma",
     author_email="karansharma1295@gmail.com",

@@ -8,7 +8,13 @@
 
 This tool needs to login to your Swiggy account and fetch the order history. The account username and password lives on your local file system. If you don't feel comfortable entering these details, you can audit the code yourself to be sure that this information is not used in any evil way. Cheers!
 
-## Setting up account
+## Getting Started
+
+### Installation
+
+`pip install swiggy-analytics`
+
+### Setting up account
 
 If you run `swiggy-analytics` for the first time, it will prompt you for your username and password and generate a `.swiggy-analytics-config.ini` file in your home directory. The file contains your username and password to your Swiggy account.
 
@@ -17,12 +23,6 @@ If you run `swiggy-analytics` for the first time, it will prompt you for your us
 You can also regenrate your config file by explictly passing the flag with the command executable, such as: `swiggy-analytics --configure`
 
 **NOTE**: Username is your phone number which you have registered with your Swiggy account.
-
-## Getting Started (Quickstart)
-
-### Installation
-
-`pip install swiggy-analytics`
 
 ### Quickstart
 
