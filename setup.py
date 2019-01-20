@@ -19,7 +19,7 @@ def requirements():
 
 setup(
     name="swiggy_analytics",
-    version="1.2",
+    version="1.3",
     description="A CLI for fetching past orders from Swiggy and performing basic stats in the terminal",
     long_description=read_readme(),
     # long_description_content_type='text/markdown',
