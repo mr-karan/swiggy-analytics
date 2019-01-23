@@ -23,6 +23,9 @@ INSERT INTO items(order_id, name, is_veg) VALUES (?,?,?)
 get_total_orders_query = """
 SELECT count(order_id) from orders
 """
+get_total_amount_query = """
+SELECT sum(order_total) from orders
+"""
 get_items_name_count_query = """
 SELECT name, count(id) as ctr from items group by name order by ctr desc limit 10
 """

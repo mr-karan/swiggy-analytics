@@ -23,9 +23,11 @@ from swiggy_analytics.queries import (get_items_name_count_query,
                                       get_monthly_spend_count,
                                       get_order_count_day_of_week,
                                       get_top_20_restaurants_query,
+                                      get_total_amount_query,
                                       get_total_orders_query)
 from swiggy_analytics.utils import (format_amount, get_config, get_month,
-                                    get_scores, get_weekday_name, save_config)
+                                    get_scores,
+                                    get_weekday_name, save_config)
 
 session = requests.Session()
 
@@ -141,6 +143,24 @@ def perform_login():
             "Login response non success {}".format(login_response.status_code))
 
 
+def insert_orders_data(db, orders):
+    # extract only the fields required for analytics
+    try:
+        orders_info = fetch_orders_info(orders)
+    except SwiggyAPIError as e:
+        raise SwiggyAPIError(e)
+
+    # store the order data in db
+    try:
+        db.insert_orders_details(orders_info.get('order_details'))
+    except SwiggyDBError as e:
+        print(e)
+    try:
+        db.insert_order_items(orders_info.get('order_items'))
+    except SwiggyDBError as e:
+        print(e)
+
+
 def fetch_and_store_orders(db):
     """
     Fetches all the historical orders for the user and saves them in db
@@ -153,10 +173,13 @@ def fetch_and_store_orders(db):
     orders = response.json().get('data').get('orders', None)
     if not orders:
         raise SwiggyAPIError("Unable to fetch orders")
+
+    # extract order meta data and insert in db
+    insert_orders_data(db, orders)
+
     offset_id = orders[-1]['order_id']
     count = response.json().get('data')['total_orders']
     pages = ceil(count/10)
-
     label = "Fetching {} orders".format(count)
 
     # Updates the progress bar on every orders fetch call (i.e. after 10 unique orders)
@@ -169,23 +192,10 @@ def fetch_and_store_orders(db):
             if len(orders) == 0:
                 break
 
-            # extract only the fields required for analytics
-            try:
-                orders_info = fetch_orders_info(orders)
-            except SwiggyAPIError as e:
-                raise SwiggyAPIError(e)
-
-            # store the order data in db
-            try:
-                db.insert_orders_details(orders_info.get('order_details'))
-            except SwiggyDBError as e:
-                print(e)
-            try:
-                db.insert_order_items(orders_info.get('order_items'))
-            except SwiggyDBError as e:
-                print(e)
-
+            # extract order meta data and insert in db
+            insert_orders_data(db, orders)
             # Responsible Scraping. Code word for "dont wanna overload their servers :P" :)
+
             time.sleep(SWIGGY_API_CALL_INTERVAL)
             # SAD PANDA FACE BEGIN
             # The way it works is that, the first API call returns a paginated set of 10 orders and to fetch the next result, you need
@@ -202,13 +212,20 @@ def display_stats(db):
     """
     print_formatted_text(
         HTML("Some basic stats based on your order history:"))
-    # orders count sec
+    # orders summary sec
     try:
         orders_count = db.fetch_result(query=get_total_orders_query)[0][0]
     except SwiggyDBError as e:
         raise("Error while fetching total orders count {}".format(e))
     print_formatted_text(HTML(
         '\nYour total <b>delivered</b> orders are: <skyblue>{}</skyblue>\n'.format(orders_count)))
+
+    try:
+        total_amount = db.fetch_result(query=get_total_amount_query)[0][0]
+    except SwiggyDBError as e:
+        raise("Error while fetching total amount {}".format(e))
+    print_formatted_text(HTML(
+        'You have spent a total sum of <skyblue>{}</skyblue>'.format(format_amount(total_amount))))
 
     # spend pattern
     print_formatted_text(
