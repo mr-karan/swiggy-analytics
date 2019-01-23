@@ -41,7 +41,7 @@ swiggy-analytics --save
 -   In case you just want to run it once and see basic stats, you can skip
     this flag and the tool will hold the data in an in memory DB which would last only till the program is running.
 
-## Adavanced
+## Advanced
 
 You can write your own SQL queries by importing `swiggy.db` in your DB tool. I personally used Metabase and setup a dashboard with interesting charts presenting patterns on my ordering behaviour.
 
