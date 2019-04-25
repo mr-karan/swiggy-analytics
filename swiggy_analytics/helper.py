@@ -14,7 +14,8 @@ from swiggy_analytics.constants import (PROGRESS_BAR_FORMATTER,
                                         PROGRESS_BAR_STYLE,
                                         SWIGGY_API_CALL_INTERVAL,
                                         SWIGGY_LOGIN_URL, SWIGGY_ORDER_URL,
-                                        SWIGGY_URL)
+                                        SWIGGY_SEND_OTP_URL, SWIGGY_URL,
+                                        SWIGGY_VERIFY_OTP_URL)
 from swiggy_analytics.db import SwiggyDB
 from swiggy_analytics.exceptions import (SwiggyAPIError, SwiggyCliAuthError,
                                          SwiggyCliConfigError,
@@ -26,8 +27,7 @@ from swiggy_analytics.queries import (get_items_name_count_query,
                                       get_total_amount_query,
                                       get_total_orders_query)
 from swiggy_analytics.utils import (format_amount, get_config, get_month,
-                                    get_scores,
-                                    get_weekday_name, save_config)
+                                    get_scores, get_weekday_name, save_config)
 
 session = requests.Session()
 
@@ -99,15 +99,8 @@ def initial_setup_prompt():
                                           text='Please enter your swiggy username. You can use your mobile number')
     except SwiggyCliQuitError:
         sys.exit("Bye")
-    try:
-        swiggy_password = get_input_value(
-            title='First time setup',
-            text='Please enter your swiggy password',
-            password=True)
-    except SwiggyCliQuitError:
-        sys.exit("Bye")
 
-    save_config(username=swiggy_username, password=swiggy_password)
+    save_config(username=swiggy_username)
     return None
 
 
@@ -122,25 +115,39 @@ def perform_login():
     # This is the most ugliest parsing I have ever written. Don't @ me
     csrf_token = establish_connection.text.split("csrfToken")[1].split("=")[
         1].split(";")[0][2:-1]
-
-    if not csrf_token:
-        raise SwiggyCliAuthError("Unable to parse CSRF Token. Login failed")
-
-    # fetch username, password from config
+    # Trying to act smart eh, swiggy? ;)
+    sw_cookie = establish_connection.cookies.get_dict().get('__SW')
+    if not csrf_token or not sw_cookie:
+        raise SwiggyCliAuthError("Unable to establish connection with the website. Login failed")
+    # fetch username from config
     try:
-        username, password = get_config()
+        username = get_config()
     except SwiggyCliConfigError as e:
         raise e
-    login_response = session.post(SWIGGY_LOGIN_URL, headers={'content-type': 'application/json',
-                                                             'User-Agent': 'Mozilla/Gecko/Firefox/65.0'},
-                                  json={"mobile": username, "password": password, '_csrf': csrf_token})
+    # send OTP request
 
-    if login_response.text == "Invalid Request":
+    otp_response = session.post(SWIGGY_SEND_OTP_URL, headers={'content-type': 'application/json',
+                                                              'Cookie':'__SW={}'.format(sw_cookie),
+                                                              'User-Agent': 'Mozilla/Gecko/Firefox/65.0'
+                                                            },
+                                  json={"mobile": username, '_csrf': csrf_token})
+    # Swiggy APIs send 200 for error responses, so cannot do a status check.
+    if otp_response== "Invalid Request":
+        raise SwiggyCliAuthError(
+            "Error from Swiggy API while sending OTP")
+    # prompt for OTP
+    otp_input = get_input_value(title='Please enter the OTP received on your mobile {}'.format(username),
+                                          text='Please enter your swiggy username. You can use your mobile number')
+
+    otp_verify_response = session.post(SWIGGY_VERIFY_OTP_URL, headers={'content-type': 'application/json',
+                                                             'User-Agent': 'Mozilla/Gecko/Firefox/65.0'},
+                                  json={"otp": otp_input, '_csrf': csrf_token})
+    if otp_verify_response.text == "Invalid Request":
         perform_login()
 
-    if login_response.status_code != 200:
+    if otp_verify_response.status_code != 200:
         raise SwiggyCliAuthError(
-            "Login response non success {}".format(login_response.status_code))
+            "Login response non success {}".format(otp_verify_response.status_code))
 
 
 def insert_orders_data(db, orders):
@@ -171,6 +178,9 @@ def fetch_and_store_orders(db):
 
     # get the last order_id to use as offset param for next order fetch call
     orders = response.json().get('data').get('orders', None)
+    # check if user has zero orders
+    if isinstance(orders, list) and len(orders)==0:
+        sys.exit("You have not placed any order, no data to fetch :)")
     if not orders:
         raise SwiggyAPIError("Unable to fetch orders")
 

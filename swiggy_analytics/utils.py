@@ -6,7 +6,8 @@ from datetime import datetime
 from swiggy_analytics.constants import CONFIG_FILEPATH
 
 
-def save_config(username, password):
+
+def save_config(username):
     """
     Saves a config file to the user's specified location.
     """
@@ -15,7 +16,6 @@ def save_config(username, password):
         # add the settings to the structure of the file, and lets write it out...
         Config.add_section('Auth')
         Config.set('Auth', 'Username', username)
-        Config.set('Auth', 'Password', password)
         Config.write(config_file)
 
 
@@ -28,7 +28,7 @@ def get_config():
 
     Config = configparser.RawConfigParser()
     Config.read(CONFIG_FILEPATH)
-    return Config.get('Auth', 'Username'), Config.get('Auth', 'Password')
+    return Config.get('Auth', 'Username')
 
 
 def config_file_present():
