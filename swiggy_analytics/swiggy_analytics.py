@@ -5,7 +5,7 @@
 swiggy-cli-expense is a utility to fetch your orders
 history from Swiggy and provide basic stats on them.
 
-Author: Karan Sharma, http://mrkaran.com
+Author: Karan Sharma, https://mrkaran.dev
 
 Licensed under the MIT License.
 """
@@ -32,11 +32,11 @@ def main():
     parser.add_argument('--configure', action='store_true',
                         help="Configure  swiggy-analytics  CLI  options. On running this command, " +
                         "you will be prompted for configuration values such as your Swiggy Username " +
-                        "and your Swiggy Password. " +
+                        "and an OTP sent to your registered mobile number. " +
                         "(the default location is ~/.aws/config). The AWS CLI will create/overwrite " +
                         "a configuration file for you, at ~/.swiggy-exepnse-config. \n" +
 
-                        "Note: If you are not comfortable sharing your username and password with the utility, " +
+                        "Note: If you are not comfortable sharing your username with the utility, " +
                         "you can audit the code yourself. This file will only live in your filesystem and " +
                         "accessible by your username only. "
                         )

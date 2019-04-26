@@ -11,7 +11,7 @@ _NOTE_: **Only** supported by Python3. Seriously, if you're still using Python2,
 
 ## Important Disclaimer
 
-This tool needs to login to your Swiggy account and fetch the order history. The account username and password lives on your local file system. If you don't feel comfortable entering these details, you can audit the code yourself to be sure that this information is not used in any evil way. Cheers!
+This tool needs to login to your Swiggy account and fetch the order history. The account username lives on your local file system. If you don't feel comfortable entering these details, you can audit the code yourself to be sure that this information is not used in any evil way. There's an OTP which is sent to your registered mobile number, which is required everytime you fetch orders. Cheers!
 
 ## Getting Started
 
@@ -21,9 +21,9 @@ This tool needs to login to your Swiggy account and fetch the order history. The
 
 ### Setting up account
 
-If you run `swiggy-analytics` for the first time, it will prompt you for your username and password and generate a `.swiggy-analytics-config.ini` file in your home directory. The file contains your username and password to your Swiggy account.
+If you run `swiggy-analytics` for the first time, it will prompt you for your registered mobile number. An OTP will be sent to your phone and after the session is authenticated, a file `.swiggy-analytics-config.ini` is created in your home directory. The file contains your username to your Swiggy account, so you don't have to re-enter this detail everytime you run the tool.
 
-![](images/configure-pwd.png)
+![](images/configure-otp.png)
 
 You can also regenrate your config file by explictly passing the flag with the command executable, such as: `swiggy-analytics --configure`
 

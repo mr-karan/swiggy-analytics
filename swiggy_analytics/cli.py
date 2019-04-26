@@ -40,16 +40,16 @@ def quit_prompt():
     return result
 
 
-def get_input_value(title, text, password=False):
+def get_input_value(title, text):
     """
     Handle input by user
     """
-    value = input_dialog(title, text, password=password)
+    value = input_dialog(title, text)
     if not value:
         # if user decides to cancel
         if not quit_prompt():
             # show the input dialogue again if user doesn't want to quit
-            return input_dialog(title, text, password=password)
+            return input_dialog(title, text)
         # in case user wants to cancel
         raise SwiggyCliQuitError("No input provided by user")
     # raw value entered by user
