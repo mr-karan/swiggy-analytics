@@ -96,7 +96,7 @@ def initial_setup_prompt():
     """
     try:
         swiggy_username = get_input_value(title='First time setup',
-                                          text='Please enter your swiggy username. You can use your mobile number')
+                                          text='Please enter your mobile number registered with Swiggy')
     except SwiggyCliQuitError:
         sys.exit("Bye")
 
@@ -136,8 +136,8 @@ def perform_login():
         raise SwiggyCliAuthError(
             "Error from Swiggy API while sending OTP")
     # prompt for OTP
-    otp_input = get_input_value(title='Please enter the OTP received on your mobile {}'.format(username),
-                                          text='Please enter your swiggy username. You can use your mobile number')
+    otp_input = get_input_value(title='Verify OTP',
+                                text='Please enter the OTP sent to your registered mobile number {}'.format(username))
 
     otp_verify_response = session.post(SWIGGY_VERIFY_OTP_URL, headers={'content-type': 'application/json',
                                                              'User-Agent': 'Mozilla/Gecko/Firefox/65.0'},
