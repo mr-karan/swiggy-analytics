@@ -135,6 +135,11 @@ def perform_login():
     if otp_response== "Invalid Request":
         raise SwiggyCliAuthError(
             "Error from Swiggy API while sending OTP")
+    # Get the new csrf token
+    re_establish_connection = session.get(SWIGGY_URL)
+    # This is the most ugliest parsing I have ever written. Don't @ me
+    csrf_token = re_establish_connection.text.split("csrfToken")[1].split("=")[
+        1].split(";")[0][2:-1]
     # prompt for OTP
     otp_input = get_input_value(title='Verify OTP',
                                 text='Please enter the OTP sent to your registered mobile number {}'.format(username))
@@ -142,6 +147,7 @@ def perform_login():
     otp_verify_response = session.post(SWIGGY_VERIFY_OTP_URL, headers={'content-type': 'application/json',
                                                              'User-Agent': 'Mozilla/Gecko/Firefox/65.0'},
                                   json={"otp": otp_input, '_csrf': csrf_token})
+
     if otp_verify_response.text == "Invalid Request":
         perform_login()
 
