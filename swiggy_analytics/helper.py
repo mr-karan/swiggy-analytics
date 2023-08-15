@@ -30,7 +30,12 @@ from swiggy_analytics.utils import (format_amount, get_config, get_month,
                                     get_scores, get_weekday_name, save_config)
 
 session = requests.Session()
-
+session.headers = {
+    "user-agent": (
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko)"
+        " Chrome/115.0.0.0 Safari/537.36"
+    )
+}
 
 def fetch_orders_info(orders):
     """
@@ -128,7 +133,6 @@ def perform_login():
 
     otp_response = session.post(SWIGGY_SEND_OTP_URL, headers={'content-type': 'application/json',
                                                               'Cookie':'__SW={}'.format(sw_cookie),
-                                                              'User-Agent': 'Mozilla/Gecko/Firefox/65.0'
                                                             },
                                   json={"mobile": username, '_csrf': csrf_token})
     # Swiggy APIs send 200 for error responses, so cannot do a status check.
@@ -144,8 +148,7 @@ def perform_login():
     otp_input = get_input_value(title='Verify OTP',
                                 text='Please enter the OTP sent to your registered mobile number {}'.format(username))
 
-    otp_verify_response = session.post(SWIGGY_VERIFY_OTP_URL, headers={'content-type': 'application/json',
-                                                             'User-Agent': 'Mozilla/Gecko/Firefox/65.0'},
+    otp_verify_response = session.post(SWIGGY_VERIFY_OTP_URL, headers={'content-type': 'application/json'},
                                   json={"otp": otp_input, '_csrf': csrf_token})
 
     if otp_verify_response.text == "Invalid Request":
