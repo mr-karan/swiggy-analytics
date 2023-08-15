@@ -1,2 +1,2 @@
 prompt-toolkit==2.0.7
-requests==2.21.0
+requests==2.31.0
