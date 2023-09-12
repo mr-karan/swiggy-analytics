@@ -30,12 +30,6 @@ from swiggy_analytics.utils import (format_amount, get_config, get_month,
                                     get_scores, get_weekday_name, save_config)
 
 session = requests.Session()
-session.headers = {
-    "user-agent": (
-        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko)"
-        " Chrome/115.0.0.0 Safari/537.36"
-    )
-}
 
 def fetch_orders_info(orders):
     """
@@ -108,7 +102,6 @@ def initial_setup_prompt():
     save_config(username=swiggy_username)
     return None
 
-
 def perform_login():
     """
     Attemps to make a GET request to Swiggy and on success,
@@ -117,20 +110,30 @@ def perform_login():
     for further calls.
     """
     establish_connection = session.get(SWIGGY_URL)
-    # This is the most ugliest parsing I have ever written. Don't @ me
-    csrf_token = establish_connection.text.split("csrfToken")[1].split("=")[
-        1].split(";")[0][2:-1]
-    # Trying to act smart eh, swiggy? ;)
+    response_text = establish_connection.text
+    csrf_token = None
+
+    if "csrfToken" in response_text:
+        second_part = response_text.split("csrfToken")[1]
+        
+        if "=" in second_part:
+            csrf_token_part = second_part.split("=")[1]
+            
+            if ";" in csrf_token_part:
+                csrf_token = csrf_token_part.split(";")[0].strip()
+
     sw_cookie = establish_connection.cookies.get_dict().get('__SW')
+
     if not csrf_token or not sw_cookie:
         raise SwiggyCliAuthError("Unable to establish connection with the website. Login failed")
+
     # fetch username from config
     try:
         username = get_config()
     except SwiggyCliConfigError as e:
         raise e
-    # send OTP request
 
+    # send OTP request
     otp_response = session.post(SWIGGY_SEND_OTP_URL, headers={'content-type': 'application/json',
                                                               'Cookie':'__SW={}'.format(sw_cookie),
                                                             },
