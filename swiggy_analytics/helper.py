@@ -79,18 +79,19 @@ def fetch_orders_info(orders):
     return {'order_details': order_details, 'order_items': order_items}
 
 
-def fetch_orders(offset_id):
-    """
+def fetch_orders(offset_id, retries=3):
+  """"
     Fetches a set of orders (limited to 10) using the history API
-    """
-    try:
-        response = session.get(
-            SWIGGY_ORDER_URL + '?order_id=' + str(offset_id))
-    except requests.exceptions.ConnectionError:
-        fetch_orders(offset_id)
-    except Exception as e:
-        raise SwiggyAPIError("Error while fetching orders: {}".format(e))
-    return response.json().get('data').get('orders', [])
+    """"
+    for _ in range(retries):
+        try:
+            response = session.get(
+                SWIGGY_ORDER_URL + '?order_id=' + str(offset_id))
+            return response.json().get('data', {}).get('orders', [])
+        except requests.exceptions.ConnectionError:
+            continue
+    raise SwiggyAPIError("Failed after multiple retries")
+
 
 
 def initial_setup_prompt():
